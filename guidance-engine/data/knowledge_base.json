@@ -1,0 +1,259 @@
+{
+  "_comment": "CURATED FIRST-AID KNOWLEDGE BASE. A human on the team writes and verifies every step, warning, excerpt, and URL from reputable sources (American Red Cross, Mayo Clinic, NHS, CDC). Kiro must NOT invent first-aid instructions or URLs. Content fields are placeholders ('TODO: fill from source'). Set reviewed=true on an entry ONLY after a person has opened and verified every URL and checked every step. The engine refuses to load entries with step source_ids that do not exist in the entry's sources, and logs a warning for entries with reviewed=false. The keywords/body_locations/red_flags fields are retrieval-matching terms (not medical advice) and are pre-filled so the engine is testable.",
+  "entries": [
+    {
+      "id": "severe_bleeding",
+      "category": "severe_bleeding",
+      "title": "Control severe bleeding",
+      "keywords": ["bleeding", "blood", "laceration", "deep cut", "gash", "spurting", "soaking", "hemorrhage"],
+      "body_locations": [],
+      "red_flags": ["spurting", "won't stop", "soaking through", "pool of blood", "amputation"],
+      "steps": [
+        { "order": 1, "text": "TODO: fill from source", "source_id": "src_severe_bleeding_1" }
+      ],
+      "warnings": ["TODO: fill from source"],
+      "do_not": ["TODO: fill from source"],
+      "follow_up_questions": ["TODO: fill from source"],
+      "sources": [
+        {
+          "id": "src_severe_bleeding_1",
+          "publisher": "American Red Cross",
+          "title": "TODO: fill from source",
+          "url": "TODO: fill from source",
+          "excerpt": "TODO: fill from source (under 15 words)",
+          "retrieved_date": "TODO"
+        }
+      ],
+      "reviewed": false
+    },
+    {
+      "id": "minor_cut_scrape",
+      "category": "minor_cut_scrape",
+      "title": "Care for a minor cut or scrape",
+      "keywords": ["cut", "scrape", "scratch", "abrasion", "graze", "small wound", "nick"],
+      "body_locations": [],
+      "red_flags": [],
+      "steps": [
+        { "order": 1, "text": "TODO: fill from source", "source_id": "src_minor_cut_scrape_1" }
+      ],
+      "warnings": ["TODO: fill from source"],
+      "do_not": ["TODO: fill from source"],
+      "follow_up_questions": ["TODO: fill from source"],
+      "sources": [
+        {
+          "id": "src_minor_cut_scrape_1",
+          "publisher": "Mayo Clinic",
+          "title": "TODO: fill from source",
+          "url": "TODO: fill from source",
+          "excerpt": "TODO: fill from source (under 15 words)",
+          "retrieved_date": "TODO"
+        }
+      ],
+      "reviewed": false
+    },
+    {
+      "id": "burn_thermal",
+      "category": "burn_thermal",
+      "title": "Care for a heat burn or scald",
+      "keywords": ["burn", "scald", "hot", "steam", "heat burn", "blister", "sunburn"],
+      "body_locations": [],
+      "red_flags": ["large burn", "charred", "burn on face", "blistering over large area"],
+      "steps": [
+        { "order": 1, "text": "TODO: fill from source", "source_id": "src_burn_thermal_1" }
+      ],
+      "warnings": ["TODO: fill from source"],
+      "do_not": ["TODO: fill from source"],
+      "follow_up_questions": ["TODO: fill from source"],
+      "sources": [
+        {
+          "id": "src_burn_thermal_1",
+          "publisher": "NHS",
+          "title": "TODO: fill from source",
+          "url": "TODO: fill from source",
+          "excerpt": "TODO: fill from source (under 15 words)",
+          "retrieved_date": "TODO"
+        }
+      ],
+      "reviewed": false
+    },
+    {
+      "id": "burn_chemical",
+      "category": "burn_chemical",
+      "title": "Care for a chemical on the skin",
+      "keywords": ["chemical", "acid", "bleach", "corrosive", "chemical burn", "caustic"],
+      "body_locations": [],
+      "red_flags": ["chemical in eye", "large chemical burn", "difficulty breathing"],
+      "steps": [
+        { "order": 1, "text": "TODO: fill from source", "source_id": "src_burn_chemical_1" }
+      ],
+      "warnings": ["TODO: fill from source"],
+      "do_not": ["TODO: fill from source"],
+      "follow_up_questions": ["TODO: fill from source"],
+      "sources": [
+        {
+          "id": "src_burn_chemical_1",
+          "publisher": "NHS",
+          "title": "TODO: fill from source",
+          "url": "TODO: fill from source",
+          "excerpt": "TODO: fill from source (under 15 words)",
+          "retrieved_date": "TODO"
+        }
+      ],
+      "reviewed": false
+    },
+    {
+      "id": "nosebleed",
+      "category": "nosebleed",
+      "title": "Stop a nosebleed",
+      "keywords": ["nosebleed", "nose bleed", "bleeding nose", "epistaxis", "blood from nose"],
+      "body_locations": ["nose", "face"],
+      "red_flags": ["won't stop", "heavy bleeding after injury"],
+      "steps": [
+        { "order": 1, "text": "TODO: fill from source", "source_id": "src_nosebleed_1" }
+      ],
+      "warnings": ["TODO: fill from source"],
+      "do_not": ["TODO: fill from source"],
+      "follow_up_questions": ["TODO: fill from source"],
+      "sources": [
+        {
+          "id": "src_nosebleed_1",
+          "publisher": "American Red Cross",
+          "title": "TODO: fill from source",
+          "url": "TODO: fill from source",
+          "excerpt": "TODO: fill from source (under 15 words)",
+          "retrieved_date": "TODO"
+        }
+      ],
+      "reviewed": false
+    },
+    {
+      "id": "sprain_fracture",
+      "category": "sprain_fracture",
+      "title": "Care for a sprain or possible broken bone",
+      "keywords": ["sprain", "fracture", "broken bone", "swelling", "deformity", "twisted", "can't move"],
+      "body_locations": ["ankle", "wrist", "arm", "leg", "knee"],
+      "red_flags": ["bone visible", "bone sticking out", "severe deformity"],
+      "steps": [
+        { "order": 1, "text": "TODO: fill from source", "source_id": "src_sprain_fracture_1" }
+      ],
+      "warnings": ["TODO: fill from source"],
+      "do_not": ["TODO: fill from source"],
+      "follow_up_questions": ["TODO: fill from source"],
+      "sources": [
+        {
+          "id": "src_sprain_fracture_1",
+          "publisher": "Mayo Clinic",
+          "title": "TODO: fill from source",
+          "url": "TODO: fill from source",
+          "excerpt": "TODO: fill from source (under 15 words)",
+          "retrieved_date": "TODO"
+        }
+      ],
+      "reviewed": false
+    },
+    {
+      "id": "head_injury",
+      "category": "head_injury",
+      "title": "Care for a head injury",
+      "keywords": ["head injury", "head wound", "bump on head", "hit head", "concussion", "head bleeding"],
+      "body_locations": ["head", "scalp", "forehead"],
+      "red_flags": ["seizure", "confused", "vomiting after head", "unconscious", "unresponsive"],
+      "steps": [
+        { "order": 1, "text": "TODO: fill from source", "source_id": "src_head_injury_1" }
+      ],
+      "warnings": ["TODO: fill from source"],
+      "do_not": ["TODO: fill from source"],
+      "follow_up_questions": ["TODO: fill from source"],
+      "sources": [
+        {
+          "id": "src_head_injury_1",
+          "publisher": "CDC",
+          "title": "TODO: fill from source",
+          "url": "TODO: fill from source",
+          "excerpt": "TODO: fill from source (under 15 words)",
+          "retrieved_date": "TODO"
+        }
+      ],
+      "reviewed": false
+    },
+    {
+      "id": "bite_sting",
+      "category": "bite_sting",
+      "title": "Care for a bite or sting",
+      "keywords": ["bite", "sting", "insect", "bee", "wasp", "animal bite", "dog bite", "spider"],
+      "body_locations": [],
+      "red_flags": ["face swelling", "lips swelling", "trouble breathing", "hives all over"],
+      "steps": [
+        { "order": 1, "text": "TODO: fill from source", "source_id": "src_bite_sting_1" }
+      ],
+      "warnings": ["TODO: fill from source"],
+      "do_not": ["TODO: fill from source"],
+      "follow_up_questions": ["TODO: fill from source"],
+      "sources": [
+        {
+          "id": "src_bite_sting_1",
+          "publisher": "American Red Cross",
+          "title": "TODO: fill from source",
+          "url": "TODO: fill from source",
+          "excerpt": "TODO: fill from source (under 15 words)",
+          "retrieved_date": "TODO"
+        }
+      ],
+      "reviewed": false
+    },
+    {
+      "id": "eye_injury",
+      "category": "eye_injury",
+      "title": "Care for an eye injury",
+      "keywords": ["eye", "eye injury", "something in eye", "chemical in eye", "object in eye", "eye pain"],
+      "body_locations": ["eye"],
+      "red_flags": ["chemical in eye", "object embedded in eye", "vision loss"],
+      "steps": [
+        { "order": 1, "text": "TODO: fill from source", "source_id": "src_eye_injury_1" }
+      ],
+      "warnings": ["TODO: fill from source"],
+      "do_not": ["TODO: fill from source"],
+      "follow_up_questions": ["TODO: fill from source"],
+      "sources": [
+        {
+          "id": "src_eye_injury_1",
+          "publisher": "Mayo Clinic",
+          "title": "TODO: fill from source",
+          "url": "TODO: fill from source",
+          "excerpt": "TODO: fill from source (under 15 words)",
+          "retrieved_date": "TODO"
+        }
+      ],
+      "reviewed": false
+    },
+    {
+      "id": "general_unknown",
+      "category": "general_unknown",
+      "title": "General safety guidance",
+      "keywords": [],
+      "body_locations": [],
+      "red_flags": [],
+      "steps": [
+        { "order": 1, "text": "TODO: fill from source", "source_id": "src_general_unknown_1" }
+      ],
+      "warnings": ["TODO: fill from source"],
+      "do_not": ["TODO: fill from source"],
+      "follow_up_questions": [
+        "Is there bleeding?",
+        "Is the person awake and breathing?",
+        "Is anyone in immediate danger?"
+      ],
+      "sources": [
+        {
+          "id": "src_general_unknown_1",
+          "publisher": "American Red Cross",
+          "title": "TODO: fill from source",
+          "url": "TODO: fill from source",
+          "excerpt": "TODO: fill from source (under 15 words)",
+          "retrieved_date": "TODO"
+        }
+      ],
+      "reviewed": false
+    }
+  ]
+}
