@@ -1,0 +1,33 @@
+{
+  "_comment": "Terms that force call_911=true regardless of category. Checked BEFORE retrieval, against the normalized description AND label names. This list is the starting point from Section 7 of the spec; the team should review it against the cited sources.",
+  "red_flags": [
+    {
+      "terms": ["unconscious", "unresponsive", "not breathing", "not moving"],
+      "reason": "Person may be unresponsive"
+    },
+    {
+      "terms": ["spurting", "pool of blood", "soaking through", "won't stop bleeding", "blood won't stop", "bleeding won't stop", "won't stop", "keeps bleeding", "can't stop the bleeding", "heavy bleeding", "amputation"],
+      "reason": "Severe bleeding"
+    },
+    {
+      "terms": ["face swelling", "lips swelling", "trouble breathing", "hives all over"],
+      "reason": "Possible severe allergic reaction"
+    },
+    {
+      "terms": ["bone visible", "bone sticking out", "severe deformity"],
+      "reason": "Possible open or severe fracture"
+    },
+    {
+      "terms": ["large burn", "charred", "burn on face", "electrical burn"],
+      "reason": "Serious burn"
+    },
+    {
+      "terms": ["head wound", "seizure", "confused", "vomiting after head"],
+      "reason": "Possible serious head injury"
+    },
+    {
+      "terms": ["chest pain", "choking", "blue lips"],
+      "reason": "Breathing or heart emergency"
+    }
+  ]
+}
