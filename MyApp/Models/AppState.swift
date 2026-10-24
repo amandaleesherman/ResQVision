@@ -18,7 +18,6 @@ enum Screen {
     case library
     case preview
     case loading
-    case questionnaire
     case results
 }
 
@@ -41,12 +40,8 @@ final class AppState {
     /// A human-readable error message if analysis failed.
     var errorMessage: String?
 
-    /// The vision analysis awaiting clarifying answers (questionnaire step).
-    var pendingAnalysis: WoundAnalysis?
-
-    /// The live engine. AIGuidanceEngine supports the two-phase (vision →
-    /// questionnaire → guidance) flow. Swap to StubGuidanceEngine() to demo
-    /// the UI offline (it skips the questionnaire).
+    /// The live engine (vision + RAG). Swap to StubGuidanceEngine() to demo the
+    /// UI offline without network/API calls.
     @ObservationIgnored var engine: GuidanceEngine = AIGuidanceEngine()
 
     // MARK: - Flow helpers
@@ -74,10 +69,8 @@ final class AppState {
         screen = .loading
     }
 
-    /// Runs analysis and advances the flow. Called by the loading screen's
-    /// .task. For the AI engine this runs vision first and, if the model is
-    /// uncertain and has clarifying questions, routes to the questionnaire
-    /// before producing guidance. Otherwise it goes straight to results.
+    /// Runs the guidance engine on the selected image and advances straight to
+    /// results. Called by the loading screen's .task.
     func runAnalysis() async {
         guard let image = selectedImage else {
             errorMessage = GuidanceError.noImage.localizedDescription
@@ -86,20 +79,6 @@ final class AppState {
             return
         }
 
-        // Two-phase path (vision → optional questionnaire → guidance).
-        if let ai = engine as? AIGuidanceEngine {
-            let analysis = await ai.analyzeVision(image: image)
-            if !analysis.clarifyingQuestions.isEmpty {
-                pendingAnalysis = analysis
-                screen = .questionnaire
-                return
-            }
-            result = await ai.buildGuidance(analysis: analysis, answers: [:])
-            screen = .results
-            return
-        }
-
-        // One-shot path (e.g. the stub engine).
         do {
             result = try await engine.analyze(image: image)
         } catch {
@@ -109,25 +88,11 @@ final class AppState {
         screen = .results
     }
 
-    /// Called by the questionnaire screen once the user answers. Builds the
-    /// final guidance using the pending analysis plus the answers.
-    func finishWithAnswers(_ answers: [String: String]) async {
-        guard let analysis = pendingAnalysis, let ai = engine as? AIGuidanceEngine else {
-            screen = .results
-            return
-        }
-        screen = .loading
-        result = await ai.buildGuidance(analysis: analysis, answers: answers)
-        pendingAnalysis = nil
-        screen = .results
-    }
-
     /// Resets everything back to the home screen.
     func reset() {
         selectedImage = nil
         result = nil
         errorMessage = nil
-        pendingAnalysis = nil
         screen = .home
     }
 }

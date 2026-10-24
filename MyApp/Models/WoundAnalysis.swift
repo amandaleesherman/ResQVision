@@ -32,11 +32,6 @@ nonisolated struct WoundAnalysis: Codable, Equatable {
     /// Short notes on what is visible. Plain, observational language only.
     let observations: String
 
-    /// Clarifying questions the model wants answered to classify more
-    /// accurately. Populated ONLY when the model is uncertain; empty when it is
-    /// confident. Max 3.
-    var clarifyingQuestions: [ClarifyingQuestion] = []
-
     nonisolated enum Level: String, Codable {
         case none, mild, minor, moderate, significant, heavy, unsure
     }
@@ -44,19 +39,4 @@ nonisolated struct WoundAnalysis: Codable, Equatable {
     nonisolated enum ImageQuality: String, Codable {
         case good, fair, poor
     }
-}
-
-/// One clarifying question with preset answer options. The UI also lets the
-/// user add their own answers via a "+" control.
-nonisolated struct ClarifyingQuestion: Codable, Equatable, Identifiable {
-    var id: String { question }
-
-    /// e.g. "How did you get this?"
-    let question: String
-
-    /// Preset choices, e.g. ["falling","cutting","hitting a surface"].
-    let options: [String]
-
-    /// Whether more than one option may be selected (symptoms vs. single cause).
-    var allowsMultiple: Bool = false
 }

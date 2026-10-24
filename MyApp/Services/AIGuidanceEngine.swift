@@ -20,31 +20,23 @@ nonisolated struct AIGuidanceEngine: GuidanceEngine {
     var vision: WoundVisionAnalyzer = GeminiVisionAnalyzer()
     var retriever: GuidanceRetriever = FirstAidKnowledgeBase()
 
-    /// One-shot path (protocol requirement): vision + guidance, no questionnaire.
+    /// Vision → RAG → synthesis, straight through to a result. If the Gemini
+    /// endpoint is unreachable, degrades to trusted general guidance so the
+    /// flow never dead-ends.
     func analyze(image: UIImage) async throws -> GuidanceResult {
-        let analysis = await analyzeVision(image: image)
-        return await buildGuidance(analysis: analysis, answers: [:])
-    }
-
-    /// Phase 1: run vision only. Returns an "unclear" fallback analysis if the
-    /// Gemini endpoint is unreachable, so the flow never dead-ends.
-    func analyzeVision(image: UIImage) async -> WoundAnalysis {
+        let analysis: WoundAnalysis
         if let result = try? await vision.analyze(image: image) {
-            return result
+            analysis = result
+        } else {
+            analysis = WoundAnalysis(
+                visibleRedness: .unsure,
+                apparentWoundType: "unclear",
+                bleedingVisibility: .unsure,
+                imageQuality: .poor,
+                uncertainty: 1.0,
+                observations: "Automatic photo analysis was unavailable, so this is general first-aid guidance. Assess the injury yourself and seek professional care if unsure."
+            )
         }
-        return WoundAnalysis(
-            visibleRedness: .unsure,
-            apparentWoundType: "unclear",
-            bleedingVisibility: .unsure,
-            imageQuality: .poor,
-            uncertainty: 1.0,
-            observations: "Automatic photo analysis was unavailable, so this is general first-aid guidance. Assess the injury yourself and seek professional care if unsure."
-        )
-    }
-
-    /// Phase 2: retrieve + synthesize. `answers` are optional questionnaire
-    /// responses (question → selected answer text) that sharpen the result.
-    func buildGuidance(analysis: WoundAnalysis, answers: [String: String]) async -> GuidanceResult {
         let visionFailed = analysis.apparentWoundType == "unclear" && analysis.uncertainty >= 1.0
 
         // RAG: retrieve grounded guidance from approved sources.
@@ -57,7 +49,7 @@ nonisolated struct AIGuidanceEngine: GuidanceEngine {
         let steps: [String]
         var supplies: [Supply] = []
         var longerTermCare: [String] = []
-        if !visionFailed, let synthesized = try? await synthesize(analysis: analysis, docs: docs, answers: answers) {
+        if !visionFailed, let synthesized = try? await synthesize(analysis: analysis, docs: docs) {
             title = synthesized.title.isEmpty
                 ? "First-aid guidance for an apparent \(analysis.apparentWoundType)"
                 : synthesized.title
@@ -92,7 +84,7 @@ nonisolated struct AIGuidanceEngine: GuidanceEngine {
         let longerTermCare: [String]
     }
 
-    private func synthesize(analysis: WoundAnalysis, docs: [GuidanceDocument], answers: [String: String]) async throws -> Synthesized {
+    private func synthesize(analysis: WoundAnalysis, docs: [GuidanceDocument]) async throws -> Synthesized {
         let apiKey = Secrets.geminiAPIKey
         guard !apiKey.isEmpty, apiKey != "PASTE_YOUR_GEMINI_API_KEY_HERE" else {
             throw GuidanceError.analysisFailed
@@ -101,10 +93,6 @@ nonisolated struct AIGuidanceEngine: GuidanceEngine {
         let sourcesText = docs.enumerated().map { i, doc in
             "[\(i + 1)] \(doc.source.rawValue) — \(doc.topic): \(doc.content)"
         }.joined(separator: "\n")
-
-        let answersText = answers.isEmpty
-            ? "none provided"
-            : answers.map { "\($0.key): \($0.value)" }.joined(separator: "; ")
 
         let prompt = """
         You are a careful first-aid assistant. You are given (a) OBSERVABLE \
@@ -128,9 +116,6 @@ nonisolated struct AIGuidanceEngine: GuidanceEngine {
         imageQuality=\(analysis.imageQuality.rawValue), \
         uncertainty=\(analysis.uncertainty), \
         notes=\(analysis.observations)
-
-        User's answers to clarifying questions (use these to be more specific): \
-        \(answersText)
 
         Retrieved guidance:
         \(sourcesText)

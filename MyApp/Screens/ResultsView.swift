@@ -81,10 +81,13 @@ struct ResultsView: View {
                 .font(.headline)
 
             if result.isSevere {
-                Label("This looks serious — consider calling emergency services now.",
-                      systemImage: "phone.fill.arrow.up.right")
-                    .font(.subheadline)
+                Label("This may need emergency care now.",
+                      systemImage: "exclamationmark.triangle.fill")
+                    .font(.subheadline).fontWeight(.semibold)
                     .foregroundStyle(.red)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
+                    .background(.red.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
             }
 
             // Immediate steps, each with an illustrative icon.
@@ -223,7 +226,7 @@ struct ResultsView: View {
     }
 }
 
-/// A single supply row with an expandable "how to use" animation + steps.
+/// A single supply row with an expandable "how to use" (text) steps.
 private struct SupplyRow: View {
     let supply: Supply
     @State private var expanded = false
