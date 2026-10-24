@@ -67,3 +67,36 @@ No view code changes when the real engine lands.
 - The camera only works on a real device; the simulator falls back to the
   photo library automatically.
 - Deployment target is iOS 27.0, so a physical device must run iOS 27+.
+
+## AI pipeline decisions (vision + RAG)
+
+Three components, each with one job (do not blur them):
+
+1. Vision model — extracts *observable* features from the wound photo only.
+   Model: `gemini-3.8-flash` (Google Gemini API, multimodal, GA).
+   Returns a small structured JSON object (WoundAnalysis), never a diagnosis.
+2. RAG — retrieves first-aid guidance from trusted medical sources ONLY:
+   WebMD, MedlinePlus, American Red Cross. No other sources.
+3. Guidance engine — combines vision features + retrieved guidance into
+   cautious, evidence-grounded instructions. It must NOT claim to diagnose a
+   condition from an image; it frames output as general first-aid guidance and
+   defers to professional care / emergency services when appropriate.
+
+### API key handling (IMPORTANT — safety)
+
+- NEVER hardcode the Gemini API key in the app; an iOS binary ships to every
+  user and the key can be extracted.
+- Current approach (prototype): key lives in `MyApp/Services/Secrets.swift`
+  (an `enum Secrets { static let geminiAPIKey }`), which is gitignored. A
+  committed `Secrets.swift.template` documents the format. The file-system
+  synchronized `MyApp/` group compiles it automatically — no pbxproj edits.
+- Before any PUBLIC demo or release: move the key behind a server-side proxy so
+  it never ships in the app. The Gemini client's base URL is the only thing
+  that changes for that switch.
+
+### Guidance / medical safety
+
+- Always show that this is general first-aid guidance, not a medical diagnosis.
+- Emphasize calling emergency services for severe situations.
+- The vision model reports uncertainty; low confidence or poor image quality
+  must be surfaced, not hidden.

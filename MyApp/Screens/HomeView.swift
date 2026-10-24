@@ -9,6 +9,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct HomeView: View {
     let appState: AppState
@@ -58,11 +59,32 @@ struct HomeView: View {
                         .padding(.vertical, 6)
                 }
                 .buttonStyle(.bordered)
+
+                // Always-available emergency call shortcut.
+                Button {
+                    callEmergencyServices()
+                } label: {
+                    Label(EmergencyContact.displayName, systemImage: "phone.fill")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.red)
+                .padding(.top, 4)
             }
             .padding(.horizontal, 24)
             .padding(.bottom, 40)
         }
         .padding()
+    }
+
+    /// Opens the phone dialer with the emergency number. Does nothing on
+    /// devices without a dialer (simulator, Wi-Fi-only iPad).
+    private func callEmergencyServices() {
+        guard let url = URL(string: "tel://\(EmergencyContact.dialNumber)"),
+              UIApplication.shared.canOpenURL(url) else { return }
+        UIApplication.shared.open(url)
     }
 }
 

@@ -29,6 +29,8 @@ struct RootView: View {
             PhotoPreviewView(appState: appState)
         case .loading:
             LoadingView(appState: appState)
+        case .questionnaire:
+            QuestionnaireView(appState: appState)
         case .results:
             ResultsView(appState: appState)
         }

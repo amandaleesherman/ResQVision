@@ -22,3 +22,6 @@ DerivedData/
 # HACKACHUSETTS requirement: Kiro must stay in the repo.
 # Do NOT ignore the .kiro/ directory. The line below explicitly keeps it tracked.
 !.kiro/
+
+# Local secrets (API keys). Never commit. Use Secrets.swift.template instead.
+MyApp/Services/Secrets.swift

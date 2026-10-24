@@ -37,7 +37,7 @@ struct CameraFlowView: View {
             } else {
                 switch status {
                 case .authorized:
-                    CameraPicker(
+                    CameraCaptureView(
                         onImage: { appState.didSelect(image: $0) },
                         onCancel: { appState.reset() }
                     )
