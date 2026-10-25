@@ -3,6 +3,12 @@ import UIKit
 
 /// Thin wrapper around an `AVCaptureSession` for still-photo capture.
 ///
+/// Concurrency model: the published UI state (`isAvailable`, `authorization`)
+/// lives on the main actor so SwiftUI can observe it. The AVFoundation objects
+/// (`session`, `photoOutput`) are driven exclusively on a private serial queue
+/// and are marked `nonisolated(unsafe)` — the correct annotation for objects
+/// that are internally thread-safe and intentionally used off the main actor.
+///
 /// Simulator-friendly: the iOS Simulator has no camera, so `configure()`
 /// detects the absence of a capture device and reports `isAvailable == false`
 /// instead of crashing. The UI uses that to fall back to the photo library.
@@ -14,76 +20,99 @@ final class CameraController: NSObject, ObservableObject {
     /// Authorization state for the camera, surfaced to the UI.
     @Published private(set) var authorization: AVAuthorizationStatus = .notDetermined
 
-    let session = AVCaptureSession()
-    private let photoOutput = AVCapturePhotoOutput()
-    private let sessionQueue = DispatchQueue(label: "resqvision.camera.session")
+    /// Driven on `sessionQueue`; safe to read for the preview layer on main.
+    nonisolated(unsafe) let session = AVCaptureSession()
+    nonisolated(unsafe) private let photoOutput = AVCapturePhotoOutput()
+    nonisolated private let sessionQueue = DispatchQueue(label: "resqvision.camera.session")
 
-    /// Continuation used to deliver a captured photo back to the async caller.
+    /// Delivers a captured photo back to the async caller. Only touched on the
+    /// main actor (set in `capturePhoto`, consumed in the delegate callback).
     private var captureContinuation: CheckedContinuation<UIImage, Error>?
 
     /// Request authorization and configure the session. Safe to call repeatedly.
     func configure() async {
-        authorization = AVCaptureDevice.authorizationStatus(for: .video)
-
-        if authorization == .notDetermined {
+        var status = AVCaptureDevice.authorizationStatus(for: .video)
+        if status == .notDetermined {
             let granted = await AVCaptureDevice.requestAccess(for: .video)
-            authorization = granted ? .authorized : .denied
+            status = granted ? .authorized : .denied
         }
+        authorization = status
 
-        guard authorization == .authorized else {
+        guard status == .authorized else {
             isAvailable = false
             return
         }
 
         // No back camera (e.g. the Simulator) → mark unavailable and bail.
-        guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back)
-            ?? AVCaptureDevice.default(for: .video) else {
+        guard AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) != nil
+            || AVCaptureDevice.default(for: .video) != nil else {
             isAvailable = false
             return
         }
 
-        await configureSession(with: device)
+        let configured = await configureSession()
+        isAvailable = configured
     }
 
-    private func configureSession(with device: AVCaptureDevice) async {
-        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-            sessionQueue.async { [weak self] in
-                guard let self else { continuation.resume(); return }
-                self.session.beginConfiguration()
-                self.session.sessionPreset = .photo
-
+    /// All session mutation happens here, on the private serial queue. Returns
+    /// whether the session was configured and started successfully.
+    private func configureSession() async -> Bool {
+        let session = self.session
+        let photoOutput = self.photoOutput
+        return await withCheckedContinuation { (continuation: CheckedContinuation<Bool, Never>) in
+            sessionQueue.async {
+                guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back)
+                    ?? AVCaptureDevice.default(for: .video) else {
+                    continuation.resume(returning: false)
+                    return
+                }
+                session.beginConfiguration()
+                session.sessionPreset = .photo
                 do {
                     let input = try AVCaptureDeviceInput(device: device)
-                    if self.session.canAddInput(input) { self.session.addInput(input) }
-                    if self.session.canAddOutput(self.photoOutput) { self.session.addOutput(self.photoOutput) }
-                    self.session.commitConfiguration()
-                    self.session.startRunning()
-                    Task { @MainActor in self.isAvailable = true }
+                    if session.canAddInput(input) { session.addInput(input) }
+                    if session.canAddOutput(photoOutput) { session.addOutput(photoOutput) }
+                    session.commitConfiguration()
+                    session.startRunning()
+                    continuation.resume(returning: true)
                 } catch {
-                    self.session.commitConfiguration()
-                    Task { @MainActor in self.isAvailable = false }
+                    session.commitConfiguration()
+                    continuation.resume(returning: false)
                 }
-                continuation.resume()
             }
         }
     }
 
     func stop() {
-        sessionQueue.async { [weak self] in
-            self?.session.stopRunning()
+        let session = self.session
+        sessionQueue.async {
+            if session.isRunning { session.stopRunning() }
         }
     }
 
     /// Capture a single still photo.
     func capturePhoto() async throws -> UIImage {
         guard isAvailable else { throw CameraError.unavailable }
+        let photoOutput = self.photoOutput
         return try await withCheckedThrowingContinuation { continuation in
             self.captureContinuation = continuation
             let settings = AVCapturePhotoSettings()
             sessionQueue.async { [weak self] in
-                self?.photoOutput.capturePhoto(with: settings, delegate: self!)
+                guard let self else { return }
+                photoOutput.capturePhoto(with: settings, delegate: self)
             }
         }
+    }
+
+    /// Resume the pending continuation exactly once, then clear it.
+    fileprivate func finishCapture(with result: Result<UIImage, Error>) {
+        switch result {
+        case .success(let image):
+            captureContinuation?.resume(returning: image)
+        case .failure(let error):
+            captureContinuation?.resume(throwing: error)
+        }
+        captureContinuation = nil
     }
 
     enum CameraError: LocalizedError {
@@ -107,15 +136,18 @@ extension CameraController: AVCapturePhotoCaptureDelegate {
         didFinishProcessingPhoto photo: AVCapturePhoto,
         error: Error?
     ) {
-        Task { @MainActor in
-            if let error {
-                self.captureContinuation?.resume(throwing: error)
-            } else if let data = photo.fileDataRepresentation(), let image = UIImage(data: data) {
-                self.captureContinuation?.resume(returning: image)
-            } else {
-                self.captureContinuation?.resume(throwing: CameraError.captureFailed)
-            }
-            self.captureContinuation = nil
+        // Extract a plain, Sendable value (Data) off the delegate thread, then
+        // hop to the main actor to resume the continuation.
+        let result: Result<UIImage, Error>
+        if let error {
+            result = .failure(error)
+        } else if let data = photo.fileDataRepresentation(), let image = UIImage(data: data) {
+            result = .success(image)
+        } else {
+            result = .failure(CameraError.captureFailed)
+        }
+        Task { @MainActor [weak self] in
+            self?.finishCapture(with: result)
         }
     }
 }
