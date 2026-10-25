@@ -84,13 +84,23 @@ struct LandingView: View {
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)
-                }
 
-                PhotosPicker(selection: $model.pickerItem, matching: .images) {
-                    Label("Photo Library", systemImage: "photo.on.rectangle")
-                        .frame(maxWidth: .infinity)
+                    // When the camera is the primary action, the library is
+                    // the secondary (bordered) button.
+                    PhotosPicker(selection: $model.pickerItem, matching: .images) {
+                        Label("Photo Library", systemImage: "photo.on.rectangle")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                } else {
+                    // No camera (e.g. Simulator) → the library is the primary
+                    // (prominent) action.
+                    PhotosPicker(selection: $model.pickerItem, matching: .images) {
+                        Label("Photo Library", systemImage: "photo.on.rectangle")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
                 }
-                .buttonStyle(camera.isAvailable ? .bordered : .borderedProminent)
             }
         }
         .padding()

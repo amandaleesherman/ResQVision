@@ -18,27 +18,32 @@ struct OCRService {
             throw OCRError.invalidImage
         }
 
-        return try await withCheckedThrowingContinuation { continuation in
-            let request = VNRecognizeTextRequest { request, error in
-                if let error {
-                    continuation.resume(throwing: OCRError.recognitionFailed(error.localizedDescription))
-                    return
-                }
-                let observations = request.results as? [VNRecognizedTextObservation] ?? []
-                let lines = observations.compactMap { $0.topCandidates(1).first?.string }
-                continuation.resume(returning: lines.joined(separator: "\n"))
-            }
-            // Accurate mode + language correction suits short, printed labels.
-            request.recognitionLevel = .accurate
-            request.usesLanguageCorrection = true
+        // Capture only Sendable values (CGImage + orientation) before crossing
+        // the thread boundary. All Vision objects are created and used entirely
+        // inside the background closure, so nothing non-Sendable is shared.
+        let orientation = image.cgImageOrientation
 
-            let handler = VNImageRequestHandler(cgImage: cgImage, orientation: image.cgImageOrientation, options: [:])
-            // Vision work is synchronous and can be heavy; run off the main thread.
+        return try await withCheckedThrowingContinuation { continuation in
             DispatchQueue.global(qos: .userInitiated).async {
+                let request = VNRecognizeTextRequest()
+                // Accurate mode + language correction suits short, printed labels.
+                request.recognitionLevel = .accurate
+                request.usesLanguageCorrection = true
+
+                let handler = VNImageRequestHandler(
+                    cgImage: cgImage,
+                    orientation: orientation,
+                    options: [:]
+                )
                 do {
                     try handler.perform([request])
+                    let observations = request.results ?? []
+                    let lines = observations.compactMap { $0.topCandidates(1).first?.string }
+                    continuation.resume(returning: lines.joined(separator: "\n"))
                 } catch {
-                    continuation.resume(throwing: OCRError.recognitionFailed(error.localizedDescription))
+                    continuation.resume(
+                        throwing: OCRError.recognitionFailed(error.localizedDescription)
+                    )
                 }
             }
         }
